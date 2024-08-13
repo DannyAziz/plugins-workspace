@@ -186,7 +186,6 @@ pub(crate) fn to_json(v: PgValueRef) -> Result<JsonValue, Error> {
         "VOID" => JsonValue::Null,
         "tsvector" => {
             if let Ok(ts_vector) = TsVector::try_from(v.as_bytes().map_err(|e| Error::from(sqlx::Error::Decode(e.into())))?) {
-                println!("ts_vector: {}", ts_vector.to_string());
                 JsonValue::String(ts_vector.to_string())
             } else {
                 JsonValue::Null
@@ -211,15 +210,10 @@ pub(crate) fn to_json(v: PgValueRef) -> Result<JsonValue, Error> {
                         Ok(bytes) => bytes,
                         Err(_) => return Err(Error::UnsupportedDatatype(v.type_info().name().to_string())),
                     };
-                    println!("Raw value: {:?}", raw_value);
                     let raw_str = String::from_utf8_lossy(raw_value);
-                    println!("Raw value: {}", raw_str);
                     if let Ok(v) = ValueRef::to_owned(&v).try_decode::<String>() {
                         JsonValue::String(v)
                     } else {
-                        println!("unsupported datatype: {:?}", v.type_info());
-                        println!("unsupported datatype name: {}", v.type_info().name());
-                        println!("unsupported datatype kind: {:?}", v.type_info().kind());
                         JsonValue::Null
                     }
                 }
